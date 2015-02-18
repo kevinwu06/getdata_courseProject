@@ -14,7 +14,7 @@
 
 unzip("getdata-projectfiles-UCI HAR Dataset.zip") #unzip the data
 
-#read in data sets, activity labels, & subject ids
+# read in data sets, activity labels, & subject ids
 test_set <- read.table("UCI HAR Dataset/test/X_test.txt") 
 test_label <- read.table("UCI HAR Dataset/test/y_test.txt") 
 train_set <- read.table("UCI HAR Dataset/train/X_train.txt") 
@@ -22,27 +22,27 @@ train_label <- read.table("UCI HAR Dataset/train/y_train.txt")
 test_subject <- read.table("UCI HAR Dataset/test/subject_test.txt")
 train_subject <- read.table("UCI HAR Dataset/train/subject_train.txt")
 
-#adding labels and subject ids to data sets w/ labels in column 1, subject id in column 2
+# adding labels and subject ids to data sets w/ labels in column 1, subject id in column 2
 test_labeled_set <- cbind(test_label, test_subject, test_set) 
 train_labeled_set <- cbind(train_label, train_subject, train_set)
 rm(test_label,test_subject,test_set,train_label,train_subject,train_set) #free up memory
 
-#combining labeled data sets
+# combining labeled data sets
 combined <- rbind(train_labeled_set, test_labeled_set)
 rm(test_labeled_set,train_labeled_set)
 
-#reading in feature labels and creating vector of variable names from them
+# reading in feature labels and creating vector of variable names from them
 features <- read.table("UCI HAR Dataset/features.txt")
 col_names <- c("activity","subject_id",as.character(features[,2]))
 
-#labeling the data set with descriptive variable names
+# labeling the data set with descriptive variable names
 colnames(combined) <- col_names
 
-#find column indices for mean and standard deviation of each measurement
-#NOTE: excluding meanFreq() and angle() related means
+# find column indices for mean and standard deviation of each measurement 
+# NOTE: excluding meanFreq() and angle() related means (results in 79 variables)
 meanORstd_index <- grep(paste(c("mean()","std()"),collapse="|"), colnames(combined), fixed=FALSE)
 
-#extract only activity, subject id, and mean + std. dev. of each measurement 
+# extract only activity, subject id, and mean + std. dev. of each measurement 
 meanORstd_index <- c(1,2,meanORstd_index)
 data <- combined[,meanORstd_index]
 rm(combined)
@@ -53,11 +53,16 @@ act_num <- activity_label[,1]
 act_lab <- as.character(activity_label[,2])
 suppressWarnings(data[,1] <- mapply(gsub, act_num, act_lab, x = data[,1]))
 
-#When there are multiple measurements of the same subject, across time or using different tools, 
-#the data is often described as being in "wide" format if there is one observation row per subject 
-#with each measurement present as a different variable and "long" format if there is one observation 
-#row per measurement (thus, multiple rows per subject).
+# transforming data into 'long' form i.e. 1 row per 
+# activity/subject_id/variable/observation combination
+library(reshape)
+col_names <- colnames(data)
+dataMelt <- melt(data,id=c("activity","subject_id"),measure.vars=col_names[3:81])
 
-#create factor variables for activity and subject id
+# aggregating data by averaging observations for each activity/subject_id/variable combination
+# 30 subjects, 6 activities, 79 variables   30 x 6 x 9 = 14,220 rows ?subsetso long form of data
+library(plyr)
+avgData <- ddply(dataMelt, .(activity,subject_id,variable), summarize, mean=mean(value))
 
-#calculate average of each variable for each activity and subject
+# writing to a txt file
+write.table(avgData, file="tidydata.txt", row.name=FALSE)
