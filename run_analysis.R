@@ -4,9 +4,7 @@
 # 4. Appropriately label the data set with descriptive variable names. 
 # 5. From the data set in step 4, creates a second, independent tidy data set with the 
 #    average of each variable for each activity and each subject 
-#    - Create a txt file with write.table() using row.name=FALSE)
-#    - Each variable you measure should be in one column, 
-#    - Each different observation of that variable should be in a different row
+#    - Create a txt file with write.table() using row.name=FALSE
 
 # data downloaded from 
 # https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
@@ -27,7 +25,8 @@ test_labeled_set <- cbind(test_label, test_subject, test_set)
 train_labeled_set <- cbind(train_label, train_subject, train_set)
 rm(test_label,test_subject,test_set,train_label,train_subject,train_set) #free up memory
 
-# combining labeled data sets
+# combining labeled data sets 
+# ---TASK #1---
 combined <- rbind(train_labeled_set, test_labeled_set)
 rm(test_labeled_set,train_labeled_set)
 
@@ -36,6 +35,7 @@ features <- read.table("UCI HAR Dataset/features.txt")
 col_names <- c("activity","subject_id",as.character(features[,2]))
 
 # labeling the data set with descriptive variable names
+# ---TASK #4---
 colnames(combined) <- col_names
 
 # find column indices for mean and standard deviation of each measurement 
@@ -43,11 +43,13 @@ colnames(combined) <- col_names
 meanORstd_index <- grep(paste(c("mean()","std()"),collapse="|"), colnames(combined), fixed=FALSE)
 
 # extract only activity, subject id, and mean + std. dev. of each measurement 
+# ---TASK #2---
 meanORstd_index <- c(1,2,meanORstd_index)
 data <- combined[,meanORstd_index]
 rm(combined)
 
-# reading in activity labels and replacing # with label
+# reading in activity labels and replacing # with label 
+# ---TASK #3---
 activity_label <- read.table("UCI HAR Dataset/activity_labels.txt")
 act_num <- activity_label[,1]
 act_lab <- as.character(activity_label[,2])
@@ -60,7 +62,8 @@ col_names <- colnames(data)
 dataMelt <- melt(data,id=c("activity","subject_id"),measure.vars=col_names[3:81])
 
 # aggregating data by averaging observations for each activity/subject_id/variable combination
-# 30 subjects, 6 activities, 79 variables   30 x 6 x 9 = 14,220 rows ?subsetso long form of data
+# 30 subjects, 6 activities, 79 variables   30 x 6 x 9 = 14,220 rows so long form of data
+# ---TASK #5---
 library(plyr)
 avgData <- ddply(dataMelt, .(activity,subject_id,variable), summarize, mean=mean(value))
 
