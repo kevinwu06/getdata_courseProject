@@ -5,6 +5,8 @@
 # 5. From the data set in step 4, creates a second, independent tidy data set with the 
 #    average of each variable for each activity and each subject 
 #    - Create a txt file with write.table() using row.name=FALSE
+#    - Each variable measured should be in one column or
+#    - Each different observation of that variable should be in a different row
 
 # data downloaded from 
 # https://d396qusza40orc.cloudfront.net/getdata%2Fprojectfiles%2FUCI%20HAR%20Dataset.zip
@@ -50,22 +52,21 @@ rm(combined)
 
 # reading in activity labels and replacing # with label 
 # ---TASK #3---
+library(qdap)
 activity_label <- read.table("UCI HAR Dataset/activity_labels.txt")
 act_num <- activity_label[,1]
 act_lab <- as.character(activity_label[,2])
-suppressWarnings(data[,1] <- mapply(gsub, act_num, act_lab, x = data[,1]))
+data[,1] <- mgsub(act_num, act_lab,data[,1])
 
-# transforming data into 'long' form i.e. 1 row per 
-# activity/subject_id/variable/observation combination
-library(reshape)
+# melting data to aggregate by averaging observations for each activity/subject_id/variable combo
+# then recasting into tidy wide form
+# ---TASK #5---
+library(reshape2)
+library(plyr)
 col_names <- colnames(data)
 dataMelt <- melt(data,id=c("activity","subject_id"),measure.vars=col_names[3:81])
-
-# aggregating data by averaging observations for each activity/subject_id/variable combination
-# 30 subjects, 6 activities, 79 variables   30 x 6 x 9 = 14,220 rows so long form of data
-# ---TASK #5---
-library(plyr)
-avgData <- ddply(dataMelt, .(activity,subject_id,variable), summarize, mean=mean(value))
+avgMelt <- ddply(dataMelt, .(activity,subject_id,variable), summarize, mean=mean(value))
+avgData <- dcast(avgMelt, activity + subject_id ~ variable, value.var="mean")
 
 # writing to a txt file
 write.table(avgData, file="tidydata.txt", row.name=FALSE)
