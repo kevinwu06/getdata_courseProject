@@ -25,7 +25,7 @@ I have chosen to perform the 5 steps in the rubric out of order (1,4,2,3,5). Spe
 * I assign my descriptive variable name vector to the column names of my combined data set.
 
 <b>TASK 2</b>:
-* I use grep to find the indices of all the column names in my combined data set that have mean or std in them (but I specifically exclude the meanFreq and angle related variables as they are inputs into the angle variables) and put them in a vector. This results in 79 variables.
+* I use grep to find the indices of all the column names in my combined data set that have mean or std in them (I specifically include the meanFreq and angle related variables as they are inputs into the angle variables) and put them in a vector. This results in 79 variables.
 * I add columns 1 & 2 to the vector because I also want to keep the activity and subject id.
 * I subset the combined data using the vector of column indices into a new data frame
 
