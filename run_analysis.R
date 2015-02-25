@@ -41,7 +41,7 @@ col_names <- c("activity","subject_id",as.character(features[,2]))
 colnames(combined) <- col_names
 
 # find column indices for mean and standard deviation of each measurement 
-# NOTE: excluding meanFreq() and angle() related means (results in 79 variables)
+# NOTE: including meanFreq() and angle() related means (results in 79 variables)
 meanORstd_index <- grep(paste(c("mean()","std()"),collapse="|"), colnames(combined), fixed=FALSE)
 
 # extract only activity, subject id, and mean + std. dev. of each measurement 
